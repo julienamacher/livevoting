@@ -11,6 +11,11 @@ tweb.factory('ServerPushPoll', function () {
 	var _vote = function(voteWhat) {
 		_sio.emit('vote', voteWhat);
 	};
+	
+	var _reset = function() {
+		_sio.emit('reset');
+	};
+
 
 	var _connect = function(host, port) {
 		if (host == null || port == null) {
@@ -29,7 +34,8 @@ tweb.factory('ServerPushPoll', function () {
 	return {
 		connect: _connect,
 		vote: _vote,
-		registerOnUserVote: _registerOnUserVote
+		registerOnUserVote: _registerOnUserVote,
+		reset: _reset
 	}
 });
 
@@ -80,5 +86,9 @@ tweb.controller('viewpoll', function($scope, $location, ServerPushPoll) {
 	
 	$scope.vote = function(voteWhat) {
 		ServerPushPoll.vote(voteWhat);
+	};
+	
+	$scope.reset = function() {
+		ServerPushPoll.reset();
 	};
 });

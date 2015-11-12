@@ -41,4 +41,14 @@ sio.sockets.on('connection', function (socket) {
 	   console.log('Emitting votes');
 	   sio.sockets.emit('liveVote', votes);
 	});
+	
+	socket.on('reset', function(voteWhat) {
+		console.log('Reset');
+		
+		for (var i = 0; i < votes.length; i++) {
+			votes[i].votes = 0;
+	   }
+
+	   sio.sockets.emit('liveVote', votes);
+	});
 });
