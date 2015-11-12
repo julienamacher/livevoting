@@ -1,13 +1,13 @@
 var tweb = angular.module('tweb', ['ngRoute', 'ngAnimate', 'chart.js']);
 
 tweb.factory('ServerPushPoll', function () {
-	var _sio;
-	var _cbOnUserVote = null;
+	var _sio = null;
+	var _cbOnUserVote = [];
 
 	var _registerOnUserVote = function(cbOnUserVote) {
-		_cbOnUserVote = cbOnUserVote;
+		_cbOnUserVote.push(cbOnUserVote);
 	};
-	
+
 	var _vote = function(voteWhat) {
 		_sio.emit('vote', voteWhat);
 	};
@@ -15,9 +15,18 @@ tweb.factory('ServerPushPoll', function () {
 	var _reset = function() {
 		_sio.emit('reset');
 	};
+	
+	var _getResults = function() {
+		_sio.emit('getResults');
+	};
 
-
-	var _connect = function(host, port) {
+	var _connectIfNecessary = function(host, port) {
+		_cbOnUserVote = [];
+		
+		if (_sio !== null) {
+			return;
+		}
+		
 		if (host == null || port == null) {
 			_sio = io.connect(); // same host
 		} else {
@@ -25,54 +34,75 @@ tweb.factory('ServerPushPoll', function () {
 		}
 		
 		_sio.on('liveVote', function(data) {
-			if (_cbOnUserVote != null) {
-				_cbOnUserVote(data);
+			for (var i=0;i<_cbOnUserVote.length;i++) {
+				_cbOnUserVote[i](data);
 			}
 		});
 	};
 
 	return {
-		connect: _connect,
+		connectIfNecessary: _connectIfNecessary,
 		vote: _vote,
 		registerOnUserVote: _registerOnUserVote,
-		reset: _reset
+		reset: _reset,
+		getResults: _getResults
 	}
 });
 
 tweb.config(['$routeProvider',
-        function($routeProvider) {
-            $routeProvider.
-                when('/', {
-                    templateUrl: 'res/partials/home.html',
-                    controller: 'home'
-                }).
-                when('/viewpoll', {
-                    templateUrl: 'res/partials/viewpoll.html',
-                    controller: 'viewpoll'
-                }).
-                otherwise({
-                    redirectTo: '/'
-                });
-        }]);
+	function($routeProvider) {
+		$routeProvider.
+			when('/pollparticipate', {
+				templateUrl: 'res/partials/pollparticipate.html',
+				controller: 'pollparticipate'
+			}).
+			when('/polladmin', {
+				templateUrl: 'res/partials/polladmin.html',
+				controller: 'polladmin'
+			}).
+			otherwise({
+				redirectTo: '/pollparticipate'
+			});
+	}]);
 
-tweb.controller('home', function($scope, $http) {
-});
-
-tweb.controller('viewpoll', function($scope, $location, ServerPushPoll) {
-	
-	ServerPushPoll.connect(null, null);
-	
+tweb.controller('pollparticipate', function($scope, ServerPushPoll) {
 	$scope.labels = [];
-	$scope.data = [];
-	$scope.options = { animationSteps: 20 };
+	
+	ServerPushPoll.connectIfNecessary(null, null);
 	
 	ServerPushPoll.registerOnUserVote(function(data) {
-		$scope.voteResults = data;
-		
+		var labels = [];
+
+		var optionsLength = data.length;
+		for (var i = 0; i < optionsLength; i++) {
+			labels.push(data[i].option);
+		}
+
+		$scope.labels = labels;
+		$scope.$apply();
+	});
+	
+	ServerPushPoll.getResults();
+	
+	$scope.vote = function(voteWhat) {
+		ServerPushPoll.vote(voteWhat);
+	};
+});
+
+tweb.controller('polladmin', function($scope, ServerPushPoll) {
+	$scope.labels = [];
+	
+	ServerPushPoll.connectIfNecessary(null, null);
+	
+	$scope.data = [];
+	$scope.options = { "animationSteps": 20 };
+
+	ServerPushPoll.registerOnUserVote(function(data) {
 		var labels = [];
 		var datas = [];
 		
-		for (var i = 0; i < data.length; i++) {
+		var optionsLength = data.length;
+		for (var i = 0; i < optionsLength; i++) {
 			var currentResult = data[i];
 			
 			labels.push(currentResult.option);
@@ -83,6 +113,8 @@ tweb.controller('viewpoll', function($scope, $location, ServerPushPoll) {
 	   $scope.data = datas;
 	   $scope.$apply();
 	});
+	
+	ServerPushPoll.getResults();
 	
 	$scope.vote = function(voteWhat) {
 		ServerPushPoll.vote(voteWhat);

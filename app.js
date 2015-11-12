@@ -36,3 +36,48 @@ controllers.forEach(function (controller) {
 
 // Static pages (such as angularjs, css and client-side js) are statically served
 app.use('/sp', express.static(__dirname + '/app/static'));
+
+var votes = [
+	{
+	   'option': 'yes',
+	   'votes': 0
+	},
+	{
+	   'option': 'no',
+	   'votes': 0
+	},
+	{
+	   'option': 'maybe',
+	   'votes': 0
+	}
+];
+
+// Socket.IO endpoint
+sio.sockets.on('connection', function (socket) {
+	console.log('New socket.io connection');
+
+	socket.on('vote', function(voteIndex) {
+		if (voteIndex >= 0 && voteIndex < votes.length) {
+			console.log('Voting: ' + voteIndex);
+			votes[voteIndex].votes++;
+
+		   console.log('Emitting votes');
+		   sio.sockets.emit('liveVote', votes);
+	   }
+	});
+	
+	socket.on('reset', function(voteWhat) {
+		console.log('Reset');
+		
+		for (var i = 0; i < votes.length; i++) {
+			votes[i].votes = 0;
+	   }
+
+	   sio.sockets.emit('liveVote', votes);
+	});
+	
+	socket.on('getResults', function() {
+		console.log('Emitting votes');
+		socket.emit('liveVote', votes);
+	});
+});
