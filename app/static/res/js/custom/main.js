@@ -74,17 +74,19 @@ tweb.config(['$routeProvider',
 
 tweb.controller('pollparticipate', function($scope, ServerPushPoll) {
 	$scope.labels = [];
+	$scope.title = '';
 	
 	ServerPushPoll.connectIfNecessary(null, null);
 	
 	ServerPushPoll.registerOnUserVote(function(data) {
 		var labels = [];
 
-		var optionsLength = data.length;
+		var optionsLength = data.votes.length;
 		for (var i = 0; i < optionsLength; i++) {
-			labels.push(data[i].option);
+			labels.push(data.votes[i].option);
 		}
 
+		$scope.title = data.title;
 		$scope.labels = labels;
 		$scope.$apply();
 	});
@@ -98,6 +100,8 @@ tweb.controller('pollparticipate', function($scope, ServerPushPoll) {
 
 tweb.controller('polladmin', function($scope, ServerPushPoll) {
 	$scope.labels = [];
+	$scope.title = '';
+	
 	
 	ServerPushPoll.connectIfNecessary(null, null);
 	
@@ -108,14 +112,15 @@ tweb.controller('polladmin', function($scope, ServerPushPoll) {
 		var labels = [];
 		var datas = [];
 		
-		var optionsLength = data.length;
+		var optionsLength = data.votes.length;
 		for (var i = 0; i < optionsLength; i++) {
-			var currentResult = data[i];
+			var currentResult = data.votes[i];
 			
 			labels.push(currentResult.option);
 			datas.push(currentResult.votes);
 	   }
 
+	   $scope.title = data.title;
 	   $scope.labels = labels;
 	   $scope.data = datas;
 	   $scope.$apply();

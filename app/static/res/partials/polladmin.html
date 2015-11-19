@@ -1,7 +1,7 @@
 <div class="container">
 	<div class="row">
 		<div class="col-md-6">
-		
+			<p>{{ title }}</p>
 			<ul ng-repeat="label in labels track by $index">
 				<li><a href="" class="btn btn-default" role="button" ng-click="vote($index)">{{ label }}</a></li>
 			</ul>

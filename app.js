@@ -37,6 +37,7 @@ controllers.forEach(function (controller) {
 // Static pages (such as angularjs, css and client-side js) are statically served
 app.use('/sp', express.static(__dirname + '/app/static'));
 
+var title = "Are you happy ?";
 var votes = [
 	{
 	   'option': 'yes',
@@ -52,6 +53,11 @@ var votes = [
 	}
 ];
 
+function sendVotes() {
+	sio.sockets.emit('liveVote', { 'votes': votes,
+	                               'title': title });
+}
+
 // Socket.IO endpoint
 sio.sockets.on('connection', function (socket) {
 	console.log('New socket.io connection');
@@ -62,7 +68,7 @@ sio.sockets.on('connection', function (socket) {
 			votes[voteIndex].votes++;
 
 		   console.log('Emitting votes');
-		   sio.sockets.emit('liveVote', votes);
+		   sendVotes()
 	   }
 	});
 	
@@ -73,11 +79,11 @@ sio.sockets.on('connection', function (socket) {
 			votes[i].votes = 0;
 	   }
 
-	   sio.sockets.emit('liveVote', votes);
+	   sendVotes();
 	});
 	
 	socket.on('getResults', function() {
 		console.log('Emitting votes');
-		socket.emit('liveVote', votes);
+		sendVotes();
 	});
 });
