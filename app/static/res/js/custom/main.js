@@ -67,6 +67,10 @@ tweb.config(['$routeProvider',
 				templateUrl: 'res/partials/polladmin.html',
 				controller: 'polladmin'
 			}).
+			when('/polldebug', {
+				templateUrl: 'res/partials/polldebug.html',
+				controller: 'polldebug'
+			}).
 			otherwise({
 				redirectTo: '/pollparticipate'
 			});
@@ -100,13 +104,11 @@ tweb.controller('pollparticipate', function($scope, ServerPushPoll) {
 
 tweb.controller('polladmin', function($scope, ServerPushPoll) {
 	$scope.labels = [];
+	$scope.data = [];
 	$scope.title = '';
-	
+	$scope.options = { "animationSteps": 20 };
 	
 	ServerPushPoll.connectIfNecessary(null, null);
-	
-	$scope.data = [];
-	$scope.options = { "animationSteps": 20 };
 
 	ServerPushPoll.registerOnUserVote(function(data) {
 		var labels = [];
@@ -123,6 +125,48 @@ tweb.controller('polladmin', function($scope, ServerPushPoll) {
 	   $scope.title = data.title;
 	   $scope.labels = labels;
 	   $scope.data = datas;
+	   $scope.$apply();
+	});
+	
+	ServerPushPoll.getResults();
+	
+	$scope.vote = function(voteWhat) {
+		ServerPushPoll.vote(voteWhat);
+	};
+	
+	$scope.reset = function() {
+		ServerPushPoll.reset();
+	};
+});
+
+tweb.controller('polldebug', function($scope, ServerPushPoll) {
+	$scope.labels = [];
+	$scope.data = [];
+	
+	$scope.dataTab = [];
+	$scope.series = ["Serie 1"];
+	
+	$scope.options = { "animationSteps": 100 };
+	
+	ServerPushPoll.connectIfNecessary(null, null);
+
+	ServerPushPoll.registerOnUserVote(function(data) {
+		var labels = [];
+		var datas = [];
+		
+		var optionsLength = data.votes.length;
+		for (var i = 0; i < optionsLength; i++) {
+			var currentResult = data.votes[i];
+			
+			labels.push(currentResult.option);
+			datas.push(currentResult.votes);
+	   }
+
+	   $scope.title = data.title;
+	   $scope.labels = labels;
+	   $scope.data = datas;
+	   $scope.dataTab = [];
+	   $scope.dataTab.push($scope.data);
 	   $scope.$apply();
 	});
 	

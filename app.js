@@ -1,5 +1,4 @@
 var express = require('express');
-var glob = require('glob');
 var bodyParser = require('body-parser');
 
 // Listening port. Is the same for the Web server and the Socket.IO server
@@ -10,10 +9,6 @@ var app = express();
 
 app.use(bodyParser.json());
 
-// Setting our view parameters
-app.set('views', __dirname + '/app/views');
-app.set('view engine', 'jade');
-
 // Binding the listening socket
 var server = app.listen(appListenOnPortConfig, function () {
   console.log('Express server listening on port ' + appListenOnPortConfig);
@@ -22,22 +17,13 @@ var server = app.listen(appListenOnPortConfig, function () {
 // Socket.IO will listen on the same port as our Web server
 var sio = require('socket.io').listen(server);
 
-// We export the socket.io config
-// as well as the secret used to sign the sessions (so we can use them in our api file)
-module.exports = {
-	'sio': sio
-};
-
-// Including all constrollers in our controllers folder
-var controllers = glob.sync(__dirname + '/app/controllers/*.js');
-controllers.forEach(function (controller) {
-	require(controller)(app);
-});
-
 // Static pages (such as angularjs, css and client-side js) are statically served
 app.use('/sp', express.static(__dirname + '/app/static'));
 
+// Poll title
 var title = "Are you happy ?";
+
+// Poll values
 var votes = [
 	{
 	   'option': 'yes',
@@ -53,7 +39,9 @@ var votes = [
 	}
 ];
 
+// Sends votes results to all connected socketio clients
 function sendVotes() {
+	console.log('Emitting votes');
 	sio.sockets.emit('liveVote', { 'votes': votes,
 	                               'title': title });
 }
@@ -66,10 +54,8 @@ sio.sockets.on('connection', function (socket) {
 		if (voteIndex >= 0 && voteIndex < votes.length) {
 			console.log('Voting: ' + voteIndex);
 			votes[voteIndex].votes++;
-
-		   console.log('Emitting votes');
-		   sendVotes()
-	   }
+			sendVotes();
+	    }
 	});
 	
 	socket.on('reset', function(voteWhat) {
@@ -77,13 +63,12 @@ sio.sockets.on('connection', function (socket) {
 		
 		for (var i = 0; i < votes.length; i++) {
 			votes[i].votes = 0;
-	   }
+	    }
 
 	   sendVotes();
 	});
 	
 	socket.on('getResults', function() {
-		console.log('Emitting votes');
 		sendVotes();
 	});
 });

@@ -1,0 +1,30 @@
+<div class="container">
+	<div class="row">
+		<div class="col-md-6">
+			<p>{{ title }}</p>
+			<ul ng-repeat="label in labels track by $index">
+				<li><a href="" class="btn btn-default" role="button" ng-click="vote($index)">{{ label }}</a></li>
+			</ul>
+
+			<a href="" class="btn btn-default" role="button" ng-click="reset()">Reset</a>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<canvas id="doughnut" class="chart chart-doughnut" chart-options="options" chart-legend="true" chart-data="data" chart-labels="labels"></canvas> 
+		</div>
+		
+		<div class="col-md-6">
+			<canvas id="line" class="chart chart-line" chart-data="dataTab" chart-labels="labels" chart-options="options" chart-legend="true" chart-series="series"></canvas> 
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<canvas id="bar" class="chart chart-bar" chart-data="dataTab" chart-labels="labels" chart-options="options" chart-legend="true"></canvas>
+		</div>
+		
+		<div class="col-md-6">
+			<canvas id="pie" class="chart chart-pie" chart-data="data" chart-labels="labels" chart-options="options" chart-legend="true"></canvas> 
+		</div>
+	</div>
+</div>
