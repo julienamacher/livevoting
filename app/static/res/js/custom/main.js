@@ -1,5 +1,12 @@
 var tweb = angular.module('tweb', ['ngRoute', 'ngAnimate', 'chart.js']);
 
+tweb.controller('HeaderController', function($scope, $location) {
+	$scope.isActive = function (viewLocation) {
+        return viewLocation == $location.path();
+    };
+});
+
+
 tweb.factory('ServerPushPoll', function () {
 	var _sio = null;
 	var _cbOnUserVote = [];
